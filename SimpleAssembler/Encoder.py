@@ -4,6 +4,8 @@ from Utils import imm_to_bin, read_imm, read_immreg
 
 def getReg(name):
     name =name.strip()
+    if name not in REGISTERS:
+        raise ValueError(f"Unidentified register: '{name}'")
     return REGISTERS[name]
 
 def encode_r(op, opcode, f3, f7):#register type commands
@@ -101,6 +103,8 @@ def encode_rvrs(opers):
     return "0000000" + "00000" + rs1 + "000" + rd + "1111011"
 
 def encode(neumonic, operands, pc, labels):
+     if mnemonic not in INSTRUCTIONS:
+        raise ValueError(f"Unidentified instruction: '{mnemonic}'")
     itype,opcode, f3, f7 = INSTRUCTIONS[neumonic]
     
     if itype == "R":
@@ -121,3 +125,5 @@ def encode(neumonic, operands, pc, labels):
         return encode_halt()
     elif itype == "RVRS":
         return encode_rvrs(operands)
+        
+    raise ValueError(f"Unhandled instruction type for '{mnemonic}'")
