@@ -14,18 +14,25 @@ def imm_to_bin(value, bits, unsigned=False): # Convert an integer immediate to a
 
 def read_imm(a):            #identify decimal,hex(0x),or binary(0b) immediate string to int(decimal).
     a = a.strip()
-    if a.startswith("0x") or a.startswith("0X"):
-        return int(a, 16) # e.g. int("0x10", 16) → 16 ......... Base 16 to decimal
-    elif a.startswith("0b") or a.startswith("0B"):
-        return int(a, 2) # e.g. int("0b1010", 2) → 10......... Base 2 to decimal
-    else:
-        return int(a) # e.g. int("42") → 42 ................ Base 10 to decimal
+    try:
+        if a.startswith("0x") or a.startswith("0X"):
+            return int(a, 16) # e.g. int("0x10", 16) → 16 ......... Base 16 to decimal
+        elif a.startswith("0b") or a.startswith("0B"):
+            return int(a, 2) # e.g. int("0b1010", 2) → 10......... Base 2 to decimal
+        else:
+            return int(a) # e.g. int("42") → 42 ................ Base 10 to decimal
+    except ValueError:
+        raise ValueError(f"Invalid immediate: '{a}'")
 
+def read_immreg(a): #Parse 'imm(reg)' format → (imm_int, reg_name)"""   
+    a = a.strip()
+    if '(' not in a or ')' not in a:
+        raise ValueError(f"Invalid memory operand: '{a}'")
+    imm_part = a[:a.index('(')]
+    reg_part = a[a.index('(')+1 : a.index(')')]
+    if imm_part == '' or reg_part == '':
+        raise ValueError(f"Invalid memory operand: '{a}'")
 
-def read_immreg(token): #Parse 'imm(reg)' format → (imm_int, reg_name)"""   
-    token = token.strip()
-    imm_part = token[:token.index('(')]
-    reg_part = token[token.index('(')+1 : token.index(')')]
     imm = read_imm(imm_part)
     reg = reg_part
 

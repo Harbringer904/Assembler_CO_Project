@@ -12,7 +12,7 @@ INSTRUCTIONS = {
     "srl":  ("R", "0110011", "101", "0000000"),
     "or":   ("R", "0110011", "110", "0000000"),
     "and":  ("R", "0110011", "111", "0000000"),
-    "mul":  ("R", "0110011", "000", "0000001"),
+    "mul":  ("R", "0110011", "000", "0000001"), 
 
     # I-type
     "addi": ("I", "0010011", "000", None),
@@ -38,8 +38,8 @@ INSTRUCTIONS = {
     # J-type
     "jal":  ("J", "1101111", None, None),
 
-    #Bonus Type
-    "rst":  ("RST", None, None, None),
+    # Bonus instructions
+    "rst":  ("RST",  None, None, None),
     "halt": ("HALT", None, None, None),
     "rvrs": ("RVRS", None, None, None),
 }
