@@ -95,10 +95,13 @@ def assemble(input_path, output_path, readable_path=None):
     #2nd pass to actually encode
     binary_lines = []
     for (lineno, neumonic, operands, pc) in instruction_lines:
-        binary = encode(neumonic, operands, pc, labels)        #encode is a function we will make in another file called encoder.py that converts the instructions into binary
-        binary_lines.append(binary)
+        try:
+            binary = encode(neumonic, operands, pc, labels)        #encode is a function we will make in another file called encoder.py that converts the instructions into binary
+            binary_lines.append(binary)
+        except ValueError as e:
+            errors.append(f"Line {lineno}: {e}")
 
-    #writing in the binary file
+    #writing in the output file
     with open(output_path, 'w') as f:
         for b in binary_lines:
             f.write(b + '\n')
