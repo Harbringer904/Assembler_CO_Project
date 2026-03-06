@@ -28,9 +28,36 @@ def lineToList(line):
 
     return label, neumonic, operands
 
+#function to determine if a label is valid or not
+def is_label(label):      
+    if len(label) == 0:
+        return False
+    
+    # First character must be a letter or underscore
+    first_char = label[0]
+    if first_char.isalpha()!= True and first_char != '_':
+        return False
+    
+    # Rest of the characters must be letters, digits, or underscores
+    for char in label[1:]:
+        if char.isalnum()!= True and char != '_':
+            return False
+    
+    return True
+
+def is_halt_valid(instruction):
+    #checks if given instruction is valid virtual halt (beq zero, zero, 0) or not
+    if instruction[1] != 'beq':
+        return False
+    if instruction[2][0] != 'zero' or instruction[2][1] != 'zero' or instruction[2][2] != '0':
+        return False
+    return True
+
 def assemble(input_path, output_path, readable_path=None):
     with open(input_path, 'r') as f:
-            lines = f.readlines()           #collects all instructions in a list of strings
+        lines = f.readlines()           #collects all instructions in a list of strings
+
+    errors = []                     #collects all errors to print at the end
         
     # 1st pass to collect labels and respective addresses (PC values)
     labels = {}
@@ -41,11 +68,29 @@ def assemble(input_path, output_path, readable_path=None):
         label, neumonic, operands = lineToList(line)
 
         if label is not None:
-            labels[label] = pc   # label points to CURRENT pc
+            if not is_label(label):
+                errors.append(f"Line {lineno}: Invalid label name '{label}'")
+            elif label in labels:
+                errors.append(f"Line {lineno}: Duplicate label '{label}'")
+            else:
+                labels[label] = pc   # label points to CURRENT pc
 
         if neumonic is not None:
             instruction_lines.append((lineno, neumonic, operands, pc))
             pc += 4
+
+    #error handling for no instructions and invalid virtual halt
+    if not instruction_lines:
+        errors.append("Error: No instructions found.")         
+        for e in errors:
+            print(e)
+        sys.exit(1)                     #exiting with error code 1 after printing all the errors
+    
+    if not is_halt_valid(instruction_lines[-1]):
+        errors.append("Error: Last instruction must be 'beq zero, zero, 0' to serve as virtual halt.")
+        for e in errors:
+            print(e)
+        sys.exit(1)
 
     #2nd pass to actually encode
     binary_lines = []
@@ -58,7 +103,13 @@ def assemble(input_path, output_path, readable_path=None):
         for b in binary_lines:
             f.write(b + '\n')
 
-    #insert code for readable path afterwards
+    #writing in the human readable file if the path is given with line number, address, binary, and original instruction
+    if readable_path:
+        with open(readable_path, 'w') as f:
+            f.write("Line |  Address   |             Binary               | Original Instruction\n")
+            f.write("---- | ---------- | -------------------------------- | --------------------\n")
+            for i, (line, binary, (orig_lineno, neumonic, operands, pc)) in enumerate(zip(lines, binary_lines, instruction_lines), start=1):
+                f.write(f"  {i}  | 0x{pc:08X} | {binary} | {line}")
     
     print(f"Assembly successful. {len(binary_lines)} instructions written.")
   
