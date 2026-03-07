@@ -47,9 +47,10 @@ def is_label(label):
 
 def is_halt_valid(instruction):
     #checks if given instruction is valid virtual halt (beq zero, zero, 0) or not
+    ZERO = ['zero','x0']
     if instruction[1] != 'beq':
         return False
-    if instruction[2][0] != 'zero' or instruction[2][1] != 'zero' or instruction[2][2] != '0':
+    if instruction[2][0] not in ZERO or instruction[2][1] not in ZERO or instruction[2][2] != '0':
         return False
     return True
 
@@ -81,11 +82,15 @@ def assemble(input_path, output_path, readable_path=None):
 
     #error handling for no instructions and invalid virtual halt
     if not instruction_lines:
-        errors.append("Error: No instructions found.")         
+        errors.append("Error: No instructions found.")                                       
+    elif len(instruction_lines) > 64:       #memory limit of 256 bytes means we can only have 64 instructions since each instruction is 4 bytes
+        errors.append(f"Error: Program exceeds memory limit. {len(instruction_lines)} instructions found, maximum is 64.")
+
+    if errors:       #exiting with error code 1 after printing all the errors
         for e in errors:
             print(e)
-        sys.exit(1)                     #exiting with error code 1 after printing all the errors
-    
+        sys.exit(1)
+
     if not is_halt_valid(instruction_lines[-1]):
         errors.append("Error: Last instruction must be 'beq zero, zero, 0' to serve as virtual halt.")
         for e in errors:
@@ -101,6 +106,11 @@ def assemble(input_path, output_path, readable_path=None):
         except ValueError as e:
             errors.append(f"Line {lineno}: {e}")
 
+    if errors:
+        for e in errors:
+            print(e)
+        sys.exit(1)
+
     #writing in the output file
     with open(output_path, 'w') as f:
         for b in binary_lines:
@@ -111,8 +121,9 @@ def assemble(input_path, output_path, readable_path=None):
         with open(readable_path, 'w') as f:
             f.write("Line |  Address   |             Binary               | Original Instruction\n")
             f.write("---- | ---------- | -------------------------------- | --------------------\n")
-            for i, (line, binary, (orig_lineno, neumonic, operands, pc)) in enumerate(zip(lines, binary_lines, instruction_lines), start=1):
-                f.write(f"  {i}  | 0x{pc:08X} | {binary} | {line}")
+            for i, (binary, (orig_lineno, neumonic, operands, pc)) in enumerate(zip(binary_lines, instruction_lines), start=1):
+                orgnl = f"{neumonic} {', '.join(operands)}"
+                f.write(f"  {i}  | 0x{pc:08X} | {binary} | {orgnl}")
     
     print(f"Assembly successful. {len(binary_lines)} instructions written.")
   
