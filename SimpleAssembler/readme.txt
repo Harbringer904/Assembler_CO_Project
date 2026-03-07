@@ -71,12 +71,12 @@ python assembler.py <input_file.asm> <output_file.bin> <readable_file.txt>
 
 **Example:**
 ```bash
-python assembler.py program.asm program.bin program.txt
+python assembler.py input.txt output.txt program.txt
 ```
 
 ## Input Format
 
-The input is a plain text `.asm` file. Each line can be one of:
+The input is a plain text `.txt` file. Each line can be one of:
 
 - An empty line — ignored
 - A label — must start with a letter or underscore, followed by a colon: `loop:` or `_loop:`
@@ -92,7 +92,7 @@ The input is a plain text `.asm` file. Each line can be one of:
 
 ### Example Input
 
-```asm
+```
 addi t0,zero,5
 addi t1,zero,3
 loop: add t2,t0,t1
@@ -105,14 +105,14 @@ beq zero,zero,0
 
 ## Output Format
 
-If the program is valid, a `.bin` file is generated where each line is a 32-character string of `0`s and `1`s representing one encoded instruction.
+If the program is valid, a `.txt` file is generated where each line is a 32-character string of `0`s and `1`s representing one encoded instruction.
 
 **Example output line:**
 ```
 00000000001100000000001010010011
 ```
 
-If there are errors, they are printed to the terminal with line numbers and no `.bin` file is created.
+If there are errors, they are printed to the terminal with line numbers and no output file is created.
 
 ---
 
@@ -120,7 +120,7 @@ If there are errors, they are printed to the terminal with line numbers and no `
 
 The assembler detects and reports the following errors:
 
-- Unknown instruction name (typo in mnemonic)
+- Unknown instruction name (typo in neumonic)
 - Unknown register name
 - Immediate value out of range for the instruction's bit field
 - Invalid immediate format (non-numeric)
@@ -129,6 +129,7 @@ The assembler detects and reports the following errors:
 - Malformed memory operand (missing parentheses)
 - Missing virtual halt instruction (`beq zero,zero,0`)
 - Virtual halt not being the last instruction
+- Input instructions taking more than 256bytes of space (only 64 instructions allowed)
 
 ---
 
@@ -136,7 +137,7 @@ The assembler detects and reports the following errors:
 
 All programs **must** end with the virtual halt instruction:
 
-```asm
+```
 beq zero,zero,0
 ```
 
