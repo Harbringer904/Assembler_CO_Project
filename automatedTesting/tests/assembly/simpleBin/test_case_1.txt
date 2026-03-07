@@ -9,7 +9,7 @@ bne t2,zero,loop
 jal ra,double
 addi sp,sp,-4
 sw t0,0(sp)
-jal zero,end
+beq zero,zero,end
 double: add t0,t0,t0
 jalr zero,ra,0
 data_check: addi sp,sp,-4
@@ -19,7 +19,6 @@ add t3,t2,zero
 bne t3,zero,error
 end: addi sp,sp,-4
 sw t0,0(sp)
-jal zero,exit
+beq zero,zero,0
 error: addi t4,zero,1
-jal zero,exit
-exit: beq zero,zero,0
+beq zero,zero,end
