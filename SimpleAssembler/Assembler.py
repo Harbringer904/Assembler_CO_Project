@@ -134,7 +134,7 @@ def assemble(input_path, output_path, readable_path=None):
             f.write("---- | ---------- | -------------------------------- | --------------------\n")
             for i, (binary, (orig_lineno, neumonic, operands, pc)) in enumerate(zip(binary_lines, instruction_lines), start=1):
                 orgnl = f"{neumonic} {', '.join(operands)}"
-                f.write(f"  {i}  | 0x{pc:08X} | {binary} | {orgnl}")
+                f.write(f"  {i}  | 0x{pc:08X} | {binary} | {orgnl}\n")
     
     print(f"Assembly successful. {len(binary_lines)} instructions written.")
   
