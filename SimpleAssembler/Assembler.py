@@ -3,6 +3,8 @@ from Encoder import encode
 
 def lineToList(line):
 
+    line = line.split('#')[0].strip()  # strip comments first
+
     #account for line ='' (empty line)
     if not line:      
         return None, None, []
@@ -28,6 +30,14 @@ def lineToList(line):
 
     return label, neumonic, operands
 
+#function to handle the out of index errors that occur when number of operands is not correct.
+def opCount(neumonic, ops, lineno, errors):
+    expected_ops = {"add": 3, "sub": 3, "sll": 3, "srl": 3, "slt": 3,"sltu": 3, "xor": 3, "or": 3, "and": 3, "mul": 3,
+        "addi": 3, "sltiu": 3, "lw": 2, "jalr": 3,"sw": 2, "beq": 3, "bne": 3, "blt": 3,"bge": 3, "bltu": 3, "bgeu": 3,
+        "lui": 2, "auipc": 2, "jal": 2,"rst": 0, "halt": 0, "rvrs": 2}
+    if neumonic in expected_ops and len(ops) != expected_ops[neumonic]:
+        errors.append(f"Line {lineno}: '{neumonic}' should have {expected_ops[neumonic]} operands, we  got {len(ops)}")
+
 #function to determine if a label is valid or not
 def is_label(label):      
     if len(label) == 0:
@@ -50,7 +60,7 @@ def is_halt_valid(instruction):
     ZERO = ['zero','x0']
     if instruction[1] != 'beq':
         return False
-    if instruction[2][0] not in ZERO or instruction[2][1] not in ZERO or instruction[2][2] != '0':
+    if instruction[2][0] not in ZERO or instruction[2][1] not in ZERO or instruction[2][2] not in ('0','0x0','0b0'):
         return False
     return True
 
@@ -78,6 +88,7 @@ def assemble(input_path, output_path, readable_path=None):
 
         if neumonic is not None:
             instruction_lines.append((lineno, neumonic, operands, pc))
+            opCount(neumonic, operands, lineno, errors)   #check for correct number of operands for the neumonic
             pc += 4
 
     #error handling for no instructions and invalid virtual halt
