@@ -1,6 +1,6 @@
 import sys
 import os
-from FINAL_PROJECT.SimpleSimulator.memory import read_mem, write_mem, is_valid_addr
+from memory import read_mem, write_mem, is_valid_addr
 
 def unsigned32(val):
     return val & 0xFFFFFFFF

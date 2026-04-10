@@ -1,6 +1,6 @@
 import sys
-from FINAL_PROJECT.SimpleSimulator.memory import load_instructions,save_output
-from FINAL_PROJECT.SimpleSimulator.instructions import(
+from memory import load_instructions,save_output
+from instructions import(
 run_r_type,run_i_type_alu,run_load_word,run_store_word,
 run_jalr,run_branch,run_lui,run_auipc,run_jal,
 run_rst,run_rvrs,run_halt,
