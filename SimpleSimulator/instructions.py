@@ -171,3 +171,113 @@ def run_store_word(inst_bin, regs, memory, pc, trace_lines, out_file):
         safe_write_trace(trace_lines, out_file)
         print(f"Error: Memory write failed: {e}", file=sys.stderr)
         sys.exit(1)
+
+def run_jalr(inst_bin, regs, pc):
+    if len(inst_bin) != 32:
+        raise ValueError("Invalid instruction")
+    rd = int(inst_bin[20:25], 2)
+    rs1 = int(inst_bin[12:17], 2)
+    imm = sign_extend(int(inst_bin[0:12], 2), 12)
+    
+    if rd < 0 or rd > 31 or rs1 < 0 or rs1 > 31:
+        raise ValueError("Invalid register")
+    
+    val1= signed32(regs[rs1])
+    new_pc = (val1+ imm) & ~1
+    if rd!= 0:
+        regs[rd]=pc+ 4
+    return new_pc
+
+def run_branch(inst_bin, regs, pc):
+    if len(inst_bin) != 32:
+        raise ValueError("Invalid instruction")
+    rs1 =int(inst_bin[12:17], 2)
+    rs2 =int(inst_bin[7:12], 2)
+    funct3 =inst_bin[17:20]
+    imm_str =inst_bin[0] + inst_bin[24] + inst_bin[1:7] + inst_bin[20:24] + "0"
+    imm =sign_extend(int(imm_str, 2), 13)
+    
+    if not all(c in '01' for c in inst_bin):
+        raise ValueError("Invalid instruction bits")
+    if rs1< 0 or rs1> 31 or rs2< 0 or rs2 > 31:
+        raise ValueError("Invalid register")
+    
+    val1 =signed32(regs[rs1])
+    val2 =signed32(regs[rs2])
+    take_branch = False
+    
+    if funct3 == "000":
+        take_branch = (val1 == val2)
+    elif funct3 == "001":
+        take_branch = (val1 != val2)
+    elif funct3 == "100":
+        take_branch = (val1 < val2)
+    elif funct3 == "101":
+        take_branch = (val1 >= val2)
+        
+    elif funct3 == "110":
+        take_branch = (unsigned32(val1) < unsigned32(val2))
+    elif funct3 == "111":
+        take_branch = (unsigned32(val1) >= unsigned32(val2))
+    else:
+        raise ValueError(f"Unsupported branch funct3: {funct3}")
+    
+    if take_branch:
+            return (pc + imm)
+    else:
+        return None
+
+def run_lui(inst_bin, regs):
+    if len(inst_bin)!=32:
+        raise ValueError("Invalid instruction")
+    rd = int(inst_bin[20:25], 2)
+    if rd < 0 or rd >31:
+        raise ValueError("Invalid register")
+    imm = int(inst_bin[0:20], 2) << 12
+    if rd != 0:
+        regs[rd] = unsigned32(imm)
+
+def run_auipc(inst_bin, regs, pc):
+    if len(inst_bin) != 32:
+        raise ValueError("Invalid instruction")
+    rd = int(inst_bin[20:25], 2)
+    if rd < 0 or rd > 31:
+        raise ValueError("Invalid register")
+    imm = int(inst_bin[0:20], 2) << 12
+    if rd != 0:
+        regs[rd] = unsigned32(pc + sign_extend(imm, 32))
+
+def run_jal(inst_bin, regs, pc):
+    if len(inst_bin) != 32:
+        raise ValueError("Invalid instruction")
+    rd = int(inst_bin[20:25], 2)
+    if rd < 0 or rd > 31:
+        raise ValueError("Invalid register")
+    imm_str = inst_bin[0] + inst_bin[12:20] + inst_bin[11] + inst_bin[1:11] + "0"
+    imm = sign_extend(int(imm_str, 2), 21)
+    new_pc = pc + imm
+    if rd != 0:
+        regs[rd] = pc + 4
+    return new_pc
+
+def run_rst(regs):
+    for i in range(32):
+        regs[i] = 0
+
+def run_rvrs(inst_bin, regs):
+    if len(inst_bin) != 32:
+        raise ValueError("Invalid instruction")
+    rd = int(inst_bin[20:25], 2)
+    rs1 = int(inst_bin[12:17], 2)
+    if rd < 0 or rd > 31 or rs1 < 0 or rs1 > 31:
+        raise ValueError("Invalid register")
+    val = regs[rs1]
+    reversed_val = 0
+    for i in range(32):
+        if val & (1 << i):
+            reversed_val = reversed_val | (1 << (31 - i))
+    if rd != 0:
+        regs[rd] = unsigned32(reversed_val)
+
+def run_halt():
+    return "HALT"
